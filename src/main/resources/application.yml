@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: SiiFundApi
+
+  datasource:
+    url: jdbc:h2:mem:siidb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true #web console for db management
+      path: /h2-console
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update #automatically update db schema
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true

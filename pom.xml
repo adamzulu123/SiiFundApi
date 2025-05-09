@@ -12,7 +12,7 @@
 	<artifactId>SiiFundApi</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>box</name>
-	<description>Demo project for Spring Boot</description>
+	<description> </description>
 	<url/>
 	<licenses>
 		<license/>
@@ -44,6 +44,12 @@
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
