@@ -19,5 +19,4 @@ public class MoneyEntry {
     @ManyToOne
     private CollectionBox collectionBox;
 
-
 }
