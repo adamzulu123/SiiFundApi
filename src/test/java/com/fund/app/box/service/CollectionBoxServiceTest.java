@@ -2,10 +2,12 @@ package com.fund.app.box.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import com.fund.app.box.exception.NonExistingCollectionBox;
 import com.fund.app.box.exception.NonExistingEventNameException;
 import com.fund.app.box.model.CollectionBox;
 import com.fund.app.box.model.Currency;
 import com.fund.app.box.model.FundraisingEvent;
+import com.fund.app.box.model.MoneyEntry;
 import com.fund.app.box.repository.CollectionBoxRepository;
 import com.fund.app.box.repository.FundraisingEventRepository;
 import org.junit.jupiter.api.Test;
@@ -74,7 +76,7 @@ public class CollectionBoxServiceTest {
     }
 
     @Test
-    void createCollectionBoxWithNonExistentEventName(){
+    void createCollectionBoxWithNonExistentEventName() {
         String eventName = "test-event-name";
 
         when(fundraisingEventRepository.findByEventName(eventName)).thenReturn(Optional.empty());
@@ -82,4 +84,51 @@ public class CollectionBoxServiceTest {
         assertThrows(NonExistingEventNameException.class, () -> collectionBoxService.createCollectionBox(eventName));
     }
 
+    @Test
+    void removeExistingEmptyCollectionBox() {
+        String identifier = "test-identifier";
+        CollectionBox box = new CollectionBox();
+        box.setUniqueIdentifier(identifier);
+
+        when(collectionBoxRepository.findByUniqueIdentifier(identifier))
+                .thenReturn(Optional.of(box));
+
+        collectionBoxService.removeCollectionBox(identifier);
+        verify(collectionBoxRepository).delete(box);
+    }
+
+    @Test
+    void removeExistingNonEmptyCollectionBox() {
+        String identifier = "test-identifier";
+        CollectionBox box = new CollectionBox();
+        box.setUniqueIdentifier(identifier);
+
+        MoneyEntry moneyEntry = new MoneyEntry();
+        box.getMoneyEntries().add(moneyEntry);
+
+        when(collectionBoxRepository.findByUniqueIdentifier(identifier))
+                .thenReturn(Optional.of(box));
+
+        collectionBoxService.removeCollectionBox(identifier);
+
+        assertTrue(box.getMoneyEntries().isEmpty());
+        verify(collectionBoxRepository).delete(box);
+    }
+
+    @Test
+    void removeNonExistingCollectionBox_throwsException() {
+        String identifier = "non-existing";
+
+        when(collectionBoxRepository.findByUniqueIdentifier(identifier))
+                .thenReturn(Optional.empty());
+
+        assertThrows(NonExistingCollectionBox.class, () ->
+                collectionBoxService.removeCollectionBox(identifier)
+        );
+    }
+
+
+
 }
+
+

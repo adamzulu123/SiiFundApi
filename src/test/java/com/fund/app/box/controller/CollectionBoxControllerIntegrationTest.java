@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,6 +38,23 @@ public class CollectionBoxControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].uniqueIdentifier").isNotEmpty())
                 .andExpect(jsonPath("$[0].assigned").value(false))
                 .andExpect(jsonPath("$[0].empty").value(true));
+    }
+
+    @Test
+    void shouldDeleteExistingCollectionBox() throws Exception {
+        CollectionBox collectionBox = new CollectionBox();
+        collectionBoxRepository.save(collectionBox);
+
+        mockMvc.perform(delete("/sii/api/collection-boxes")
+                .param("uniqueIdentifier", collectionBox.getUniqueIdentifier()))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldReturn404WhenDeletingNonExistingBox() throws Exception {
+        mockMvc.perform(delete("/sii/api/collection-boxes")
+                        .param("uniqueIdentifier", "Not-existing-UI"))
+                .andExpect(status().isNotFound());
     }
 
 

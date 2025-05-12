@@ -1,6 +1,7 @@
 package com.fund.app.box.service;
 
 import com.fund.app.box.dto.CreateCollectionBoxRequest;
+import com.fund.app.box.exception.NonExistingCollectionBox;
 import com.fund.app.box.exception.NonExistingEventNameException;
 import com.fund.app.box.model.CollectionBox;
 import com.fund.app.box.model.FundraisingEvent;
@@ -47,6 +48,15 @@ public class CollectionBoxService {
     @Transactional(readOnly = true)
     public List<CollectionBox> getAllCollectionBoxes() {
         return collectionBoxRepository.findAll();
+    }
+
+    @Transactional
+    public void removeCollectionBox(String identifier){
+        CollectionBox collectionBox = collectionBoxRepository.findByUniqueIdentifier(identifier)
+                .orElseThrow(() -> new NonExistingCollectionBox("Invalid collection box identifier: " + identifier));
+
+        if (!collectionBox.isEmpty()) collectionBox.getMoneyEntries().clear();
+        collectionBoxRepository.delete(collectionBox);
     }
 
 }

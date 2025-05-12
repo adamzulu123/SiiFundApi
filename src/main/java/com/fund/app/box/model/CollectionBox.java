@@ -25,7 +25,12 @@ public class CollectionBox {
     @ManyToOne(fetch = FetchType.LAZY)
     private FundraisingEvent fundraisingEvent;
 
-    @OneToMany(mappedBy = "collectionBox", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    //there is important question if we should delete all transaction history or not,
+    //right now we are deleting collection box with all its MoneyEntry information.
+    //It might be easier to implement and sometimes more suitable, but it's also highly possible
+    //that we need all transactions and boxes history available everytime for analysis
+    //todo:: this case is important to discuss an analyze and implement right solution
+    @OneToMany(mappedBy = "collectionBox", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MoneyEntry> moneyEntries = new ArrayList<>();
 
     @PrePersist

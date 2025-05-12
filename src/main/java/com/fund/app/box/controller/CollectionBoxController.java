@@ -51,6 +51,11 @@ public class CollectionBoxController {
         return ResponseEntity.ok(collectionBoxDtos);
     }
 
+    @DeleteMapping
+    public ResponseEntity<Void> removeCollectionBox(@RequestParam String uniqueIdentifier) {
+        collectionBoxService.removeCollectionBox(uniqueIdentifier);
+        return ResponseEntity.noContent().build();
+    }
 
 
 

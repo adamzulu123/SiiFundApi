@@ -55,5 +55,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 
+    @ExceptionHandler(NonExistingCollectionBox.class)
+    public ResponseEntity<String> handleNonExistingBox(NonExistingCollectionBox e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+
 
 }

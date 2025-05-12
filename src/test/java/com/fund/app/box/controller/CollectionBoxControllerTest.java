@@ -2,6 +2,7 @@ package com.fund.app.box.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fund.app.box.dto.CreateCollectionBoxRequest;
+import com.fund.app.box.exception.NonExistingCollectionBox;
 import com.fund.app.box.exception.NonExistingEventNameException;
 import com.fund.app.box.model.CollectionBox;
 import com.fund.app.box.model.Currency;
@@ -14,7 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -82,6 +84,32 @@ public class CollectionBoxControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void shouldRemoveCollectionBoxSuccessfully() throws Exception {
+        String uniqueIdentifier = "id-id";
+
+        doNothing().when(collectionBoxService).removeCollectionBox(uniqueIdentifier);
+
+        mockMvc.perform(delete("/sii/api/collection-boxes")
+                        .param("uniqueIdentifier", uniqueIdentifier))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenRemovingNonExistingBox() throws Exception {
+        String uniqueIdentifier = "id-id";
+
+        doThrow(new NonExistingCollectionBox("Invalid collection box identifier: " + uniqueIdentifier))
+                .when(collectionBoxService).removeCollectionBox(uniqueIdentifier);
+
+        mockMvc.perform(delete("/sii/api/collection-boxes")
+                        .param("uniqueIdentifier", uniqueIdentifier))
+                .andExpect(status().isNotFound());
+
+    }
+
+
 
 
 
