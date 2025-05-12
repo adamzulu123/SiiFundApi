@@ -1,8 +1,9 @@
 package com.fund.app.box.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fund.app.box.dto.AssignBoxRequest;
 import com.fund.app.box.dto.CreateCollectionBoxRequest;
-import com.fund.app.box.exception.NonExistingCollectionBox;
+import com.fund.app.box.exception.NonExistingCollectionBoxException;
 import com.fund.app.box.exception.NonExistingEventNameException;
 import com.fund.app.box.model.CollectionBox;
 import com.fund.app.box.model.Currency;
@@ -100,13 +101,36 @@ public class CollectionBoxControllerTest {
     void shouldReturnNotFoundWhenRemovingNonExistingBox() throws Exception {
         String uniqueIdentifier = "id-id";
 
-        doThrow(new NonExistingCollectionBox("Invalid collection box identifier: " + uniqueIdentifier))
+        doThrow(new NonExistingCollectionBoxException("Invalid collection box identifier: " + uniqueIdentifier))
                 .when(collectionBoxService).removeCollectionBox(uniqueIdentifier);
 
         mockMvc.perform(delete("/sii/api/collection-boxes")
                         .param("uniqueIdentifier", uniqueIdentifier))
                 .andExpect(status().isNotFound());
 
+    }
+
+    @Test
+    void shouldAssignCollectionBoxSuccessfully() throws Exception {
+        String uniqueIdentifier = "id-id";
+        String eventName = "test-event-name";
+
+        AssignBoxRequest request = new AssignBoxRequest(uniqueIdentifier, eventName);
+
+        mockMvc.perform(post("/sii/api/collection-boxes/assign")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldReturnBadRequestForInvalidInput() throws Exception {
+        AssignBoxRequest request = new AssignBoxRequest("", "");
+
+        mockMvc.perform(post("/sii/api/collection-boxes/assign")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 
 

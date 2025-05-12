@@ -1,7 +1,6 @@
 package com.fund.app.box.service;
 
-import com.fund.app.box.dto.CreateCollectionBoxRequest;
-import com.fund.app.box.exception.NonExistingCollectionBox;
+import com.fund.app.box.exception.NonExistingCollectionBoxException;
 import com.fund.app.box.exception.NonExistingEventNameException;
 import com.fund.app.box.model.CollectionBox;
 import com.fund.app.box.model.FundraisingEvent;
@@ -53,10 +52,29 @@ public class CollectionBoxService {
     @Transactional
     public void removeCollectionBox(String identifier){
         CollectionBox collectionBox = collectionBoxRepository.findByUniqueIdentifier(identifier)
-                .orElseThrow(() -> new NonExistingCollectionBox("Invalid collection box identifier: " + identifier));
+                .orElseThrow(() -> new NonExistingCollectionBoxException("Invalid collection box identifier: " + identifier));
 
         if (!collectionBox.isEmpty()) collectionBox.getMoneyEntries().clear();
         collectionBoxRepository.delete(collectionBox);
+    }
+
+    @Transactional
+    public void assignBoxToEvent(String uniqueIdentifier, String eventName){
+        CollectionBox box = collectionBoxRepository.findByUniqueIdentifier(uniqueIdentifier)
+                .orElseThrow(() -> new NonExistingCollectionBoxException("Invalid collection box identifier: " + uniqueIdentifier));
+
+        FundraisingEvent event = fundraisingEventRepository.findByEventName(eventName)
+                .orElseThrow(() -> new NonExistingEventNameException("Invalid event name: " + eventName));
+
+        if (!box.isEmpty()){
+            throw new IllegalArgumentException("Cannot assign a non-empty collection box to an event");
+        }
+
+        if (box.isAssigned()){
+            throw new IllegalArgumentException("Cannot assign an assigned collection box to an event");
+        }
+
+        box.setFundraisingEvent(event);
     }
 
 }

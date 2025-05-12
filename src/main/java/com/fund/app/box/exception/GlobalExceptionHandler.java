@@ -51,14 +51,20 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NonExistingEventNameException.class)
-    public ResponseEntity<String> handleIllegalArgument(NonExistingEventNameException e) {
+    public ResponseEntity<String> handleNonExistingEventName(NonExistingEventNameException e) {
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 
-    @ExceptionHandler(NonExistingCollectionBox.class)
-    public ResponseEntity<String> handleNonExistingBox(NonExistingCollectionBox e) {
+    @ExceptionHandler(NonExistingCollectionBoxException.class)
+    public ResponseEntity<String> handleNonExistingBox(NonExistingCollectionBoxException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+
 
 
 }

@@ -1,18 +1,23 @@
 package com.fund.app.box.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fund.app.box.dto.AssignBoxRequest;
 import com.fund.app.box.model.CollectionBox;
+import com.fund.app.box.model.Currency;
+import com.fund.app.box.model.FundraisingEvent;
 import com.fund.app.box.repository.CollectionBoxRepository;
+import com.fund.app.box.repository.FundraisingEventRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -22,6 +27,9 @@ public class CollectionBoxControllerIntegrationTest {
 
     @Autowired
     private CollectionBoxRepository collectionBoxRepository;
+
+    @Autowired
+    private FundraisingEventRepository fundraisingEventRepository;
 
     @BeforeEach
     public void setUp() {
@@ -55,6 +63,24 @@ public class CollectionBoxControllerIntegrationTest {
         mockMvc.perform(delete("/sii/api/collection-boxes")
                         .param("uniqueIdentifier", "Not-existing-UI"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldAssignCollectionToExistingBox() throws Exception {
+        CollectionBox collectionBox = new CollectionBox();
+        collectionBoxRepository.save(collectionBox);
+
+        FundraisingEvent fundraisingEvent = new FundraisingEvent("Event", Currency.USD);
+        fundraisingEventRepository.save(fundraisingEvent);
+
+        AssignBoxRequest request = new AssignBoxRequest(collectionBox.getUniqueIdentifier(), fundraisingEvent.getEventName());
+
+        mockMvc.perform(post("/sii/api/collection-boxes/assign")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("assigned to event")));
+
     }
 
 
