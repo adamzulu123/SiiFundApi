@@ -10,11 +10,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CollectionBoxDto {
-    //private UUID id;
     private String uniqueIdentifier;
     private boolean isAssigned;
     private boolean isEmpty;
-    private String fundraisingEventName;
+    //private String fundraisingEventName;
 
 
 }

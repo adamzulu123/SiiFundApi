@@ -2,7 +2,6 @@ package com.fund.app.box.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fund.app.box.dto.CreateCollectionBoxRequest;
-import com.fund.app.box.dto.CreateFundraisingEventRequest;
 import com.fund.app.box.exception.NonExistingEventNameException;
 import com.fund.app.box.model.CollectionBox;
 import com.fund.app.box.model.Currency;
@@ -66,8 +65,7 @@ public class CollectionBoxControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.uniqueIdentifier").value("test-id"))
                 .andExpect(jsonPath("$.empty").value(true))
-                .andExpect(jsonPath("$.assigned").value(true))
-                .andExpect(jsonPath("$.fundraisingEventName").value(eventName));
+                .andExpect(jsonPath("$.assigned").value(true));
     }
 
     @Test

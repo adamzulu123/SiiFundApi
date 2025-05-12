@@ -6,10 +6,10 @@ import com.fund.app.box.model.CollectionBox;
 import com.fund.app.box.service.CollectionBoxService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/sii/api/collection-boxes")
@@ -32,10 +32,32 @@ public class CollectionBoxController {
         CollectionBoxDto collectionBoxDto = new CollectionBoxDto(
                 newBox.getUniqueIdentifier(),
                 newBox.isAssigned(),
-                newBox.isEmpty(),
-                newBox.isAssigned() ? newBox.getFundraisingEvent().getEventName() : null
+                newBox.isEmpty()
         );
         return ResponseEntity.ok(collectionBoxDto);
     }
 
+    @GetMapping
+    public ResponseEntity<List<CollectionBoxDto>> getCollectionBoxes() {
+        List<CollectionBox> allCollectionBoxes = collectionBoxService.getAllCollectionBoxes();
+        List<CollectionBoxDto> collectionBoxDtos = allCollectionBoxes.stream()
+                .map(box -> new CollectionBoxDto(
+                        box.getUniqueIdentifier(),
+                        box.isAssigned(),
+                        box.isEmpty()
+                ))
+                .toList();
+
+        return ResponseEntity.ok(collectionBoxDtos);
+    }
+
+
+
+
+
 }
+
+
+
+
+
