@@ -50,4 +50,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(NonExistingEventNameException.class)
+    public ResponseEntity<String> handleIllegalArgument(NonExistingEventNameException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+
+
 }

@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @NoArgsConstructor
@@ -15,23 +16,31 @@ import java.util.List;
 public class CollectionBox {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, updatable = false)
     private String uniqueIdentifier;
-    private boolean isAssigned;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private FundraisingEvent fundraisingEvent;
 
-    //todo: orphanRemoval = true --> this option is under consideration because maybe we need every money transfer in history
-    @OneToMany(mappedBy = "collectionBox", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MoneyEntry> moneyEntries;
+    @OneToMany(mappedBy = "collectionBox", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<MoneyEntry> moneyEntries = new ArrayList<>();
 
-    //helper method to find if box is empty
-    public boolean isEmpty(){
-        return  moneyEntries == null || moneyEntries.isEmpty();
+    @PrePersist
+    protected void onCreate() {
+        this.uniqueIdentifier = UUID.randomUUID().toString();
+    }
+
+    @Transient
+    public boolean isAssigned() {
+        return this.fundraisingEvent != null;
+    }
+
+    @Transient
+    public boolean isEmpty() {
+        return this.moneyEntries.isEmpty();
     }
 
 }

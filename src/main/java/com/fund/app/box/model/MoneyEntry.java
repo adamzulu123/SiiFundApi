@@ -3,6 +3,7 @@ package com.fund.app.box.model;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 public class MoneyEntry {
@@ -11,12 +12,15 @@ public class MoneyEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(precision = 19, scale = 2)
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
     private Currency currency;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private CollectionBox collectionBox;
+
+    private LocalDateTime createTime;
 
 }
