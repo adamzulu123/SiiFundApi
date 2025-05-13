@@ -55,7 +55,7 @@ public class FundraisingEventControllerTest {
         when(fundraisingEventService.createFundraisingEvent(any(CreateFundraisingEventRequest.class)))
                 .thenReturn(mockEvent);
 
-        mockMvc.perform(post("/sii/api/events")
+        mockMvc.perform(post("/sii/api/events/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -69,7 +69,7 @@ public class FundraisingEventControllerTest {
     public void shouldHandleInvalidRequest() throws Exception {
         String invalidRequestJson = "{}";
 
-        mockMvc.perform(post("/sii/api/events")
+        mockMvc.perform(post("/sii/api/events/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidRequestJson))
                 .andExpect(status().isBadRequest());

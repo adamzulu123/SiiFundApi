@@ -8,12 +8,14 @@ import com.fund.app.box.model.Currency;
 import com.fund.app.box.model.FundraisingEvent;
 import com.fund.app.box.repository.CollectionBoxRepository;
 import com.fund.app.box.repository.FundraisingEventRepository;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -27,6 +29,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
+@Rollback
 public class CollectionBoxControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
@@ -37,10 +41,12 @@ public class CollectionBoxControllerIntegrationTest {
     @Autowired
     private FundraisingEventRepository fundraisingEventRepository;
 
-    @BeforeEach
-    public void setUp() {
-        collectionBoxRepository.deleteAll();
-    }
+//    @BeforeEach
+//    public void setUp() {
+//        fundraisingEventRepository.deleteAll();
+//        collectionBoxRepository.deleteAll();
+//    }
+
 
     @Test
     void shouldReturnAllCollectionsBoxes() throws Exception {
