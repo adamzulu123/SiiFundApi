@@ -22,6 +22,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Whole application testing - integration testing
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 public class CollectionBoxControllerIntegrationTest {
@@ -108,6 +111,40 @@ public class CollectionBoxControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(request)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldTransferMoneyToFundraisingEvent() throws Exception {
+        CollectionBox collectionBox = new CollectionBox();
+        collectionBoxRepository.save(collectionBox);
+
+        FundraisingEvent event = new FundraisingEvent("Event", Currency.USD);
+        fundraisingEventRepository.save(event);
+
+        AssignBoxRequest request = new AssignBoxRequest(collectionBox.getUniqueIdentifier(), event.getEventName());
+        mockMvc.perform(post("/sii/api/collection-boxes/assign")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+        AddMoneyRequest request2 = new AddMoneyRequest(collectionBox.getUniqueIdentifier(), new BigDecimal(10), Currency.GBP);
+        mockMvc.perform(post("/sii/api/collection-boxes/fund")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request2)))
+                .andExpect(status().isOk());
+
+        AddMoneyRequest request3 = new AddMoneyRequest(collectionBox.getUniqueIdentifier(), new BigDecimal(20), Currency.EUR);
+        mockMvc.perform(post("/sii/api/collection-boxes/fund")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request3)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/sii/api/collection-boxes/transfer")
+                .param("uniqueIdentifier", collectionBox.getUniqueIdentifier()))
+                .andExpect(status().isOk())
+                //we dont need the value because we have test to check if converter is working well too
+                .andExpect(content().string(containsString(("Successfully transferred: "))));
+
     }
 
 

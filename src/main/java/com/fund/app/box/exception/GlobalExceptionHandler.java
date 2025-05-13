@@ -65,6 +65,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 
+    @ExceptionHandler(EmptyCollectionBoxException.class)
+    public ResponseEntity<String> handleEmptyBox(EmptyCollectionBoxException ex) {
+        return ResponseEntity.status(409).body(ex.getMessage()); // 409 Conflict
+    }
+
+    @ExceptionHandler(UnassignedBoxException.class)
+    public ResponseEntity<String> handleUnassignedBox(UnassignedBoxException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage()); // 400 Bad Request
+    }
+
 
 
 }

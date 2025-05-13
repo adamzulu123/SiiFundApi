@@ -22,9 +22,11 @@ import java.math.BigDecimal;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Endpoint testing
+ */
 @WebMvcTest(CollectionBoxController.class)
 public class CollectionBoxControllerTest {
 
@@ -180,6 +182,15 @@ public class CollectionBoxControllerTest {
 
     //todo:: the rest of controller tests like no Id or no amount, but it's working because I tested it manually
 
+
+    @Test
+    void transferMoneyToFundraisingEventSuccessfully() throws Exception {
+        when(collectionBoxService.transferMoneyToFundraisingEvent("BOX123")).thenReturn(new BigDecimal("123.45"));
+
+        mockMvc.perform(post("/sii/api/collection-boxes/transfer")
+                        .param("uniqueIdentifier", "BOX123"))
+                .andExpect(status().isOk());
+    }
 
 
 

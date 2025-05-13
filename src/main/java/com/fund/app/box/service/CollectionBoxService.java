@@ -1,7 +1,9 @@
 package com.fund.app.box.service;
 
+import com.fund.app.box.exception.EmptyCollectionBoxException;
 import com.fund.app.box.exception.NonExistingCollectionBoxException;
 import com.fund.app.box.exception.NonExistingEventNameException;
+import com.fund.app.box.exception.UnassignedBoxException;
 import com.fund.app.box.model.CollectionBox;
 import com.fund.app.box.model.Currency;
 import com.fund.app.box.model.FundraisingEvent;
@@ -9,6 +11,7 @@ import com.fund.app.box.model.MoneyEntry;
 import com.fund.app.box.repository.CollectionBoxRepository;
 import com.fund.app.box.repository.FundraisingEventRepository;
 import com.fund.app.box.repository.MoneyEntryRepository;
+import com.fund.app.box.util.CurrencyConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +29,8 @@ public class CollectionBoxService {
     private FundraisingEventRepository fundraisingEventRepository;
     @Autowired
     private MoneyEntryRepository moneyEntryRepository;
+    @Autowired
+    private CurrencyConverter currencyConverter;
 
     @Transactional
     public CollectionBox createCollectionBox(String fundraisingEventName) {
@@ -98,6 +103,31 @@ public class CollectionBoxService {
         //saving this transfer to the repository
         collectionBox.getMoneyEntries().add(entry);
         moneyEntryRepository.save(entry);
+    }
+
+    //transfer all money to Fundraising event form the collection box
+    @Transactional
+    public BigDecimal transferMoneyToFundraisingEvent(String uniqueIdentifier){
+        CollectionBox collectionBox = collectionBoxRepository.findByUniqueIdentifier(uniqueIdentifier)
+                .orElseThrow(() -> new NonExistingCollectionBoxException("Invalid collection box identifier: " + uniqueIdentifier));
+
+        if (!collectionBox.isAssigned()) throw new UnassignedBoxException("Cannot withdrawal money from unassigned collection box");
+        if (collectionBox.isEmpty()) throw new EmptyCollectionBoxException("Cannot withdrawal money from empty collection box");
+
+        FundraisingEvent event = collectionBox.getFundraisingEvent();
+        Currency currencyTarget = event.getAccountCurrency();
+
+        BigDecimal totalToTransfer = BigDecimal.ZERO;
+        for (MoneyEntry entry: collectionBox.getMoneyEntries()){
+            BigDecimal convertedAmount = currencyConverter
+                    .convert(entry.getAmount(), entry.getCurrency(), currencyTarget);
+            totalToTransfer = totalToTransfer.add(convertedAmount);
+        }
+
+        event.setAccountBalance(event.getAccountBalance().add(totalToTransfer));
+        collectionBox.getMoneyEntries().clear();
+
+        return totalToTransfer;
     }
 
 

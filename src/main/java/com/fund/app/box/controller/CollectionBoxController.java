@@ -74,6 +74,12 @@ public class CollectionBoxController {
         return ResponseEntity.ok("Transaction completed successfully ");
     }
 
+    @PostMapping("/transfer")
+    public ResponseEntity<String> transferMoneyToFundraisingEventAccount(@RequestParam String uniqueIdentifier){
+        BigDecimal totalTransferValue = collectionBoxService.transferMoneyToFundraisingEvent(uniqueIdentifier);
+        return ResponseEntity.ok("Successfully transferred: " + totalTransferValue.toString());
+    }
+
 
 
 

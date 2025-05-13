@@ -3,8 +3,10 @@ package com.fund.app.box.service;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.fund.app.box.dto.AddMoneyRequest;
+import com.fund.app.box.exception.EmptyCollectionBoxException;
 import com.fund.app.box.exception.NonExistingCollectionBoxException;
 import com.fund.app.box.exception.NonExistingEventNameException;
+import com.fund.app.box.exception.UnassignedBoxException;
 import com.fund.app.box.model.CollectionBox;
 import com.fund.app.box.model.Currency;
 import com.fund.app.box.model.FundraisingEvent;
@@ -12,6 +14,7 @@ import com.fund.app.box.model.MoneyEntry;
 import com.fund.app.box.repository.CollectionBoxRepository;
 import com.fund.app.box.repository.FundraisingEventRepository;
 import com.fund.app.box.repository.MoneyEntryRepository;
+import com.fund.app.box.util.CurrencyConverter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -20,6 +23,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,6 +40,8 @@ public class CollectionBoxServiceTest {
     private CollectionBoxRepository collectionBoxRepository;
     @Mock
     private MoneyEntryRepository moneyEntryRepository;
+    @Mock
+    private CurrencyConverter currencyConverter;
     @InjectMocks
     private CollectionBoxService collectionBoxService;
 
@@ -256,6 +263,63 @@ public class CollectionBoxServiceTest {
 
         verify(moneyEntryRepository, never()).save(any(MoneyEntry.class));
     }
+
+    @Test
+    void transferMoneyFromCollectionBoxToFundraisingEventSuccessfully() {
+        CollectionBox box = new CollectionBox();
+        FundraisingEvent event = new FundraisingEvent();
+        event.setAccountCurrency(Currency.EUR);
+        event.setAccountBalance(BigDecimal.ZERO);
+
+        MoneyEntry entry1 = new MoneyEntry();
+        entry1.setAmount(new BigDecimal("100"));
+        entry1.setCurrency(Currency.USD);
+
+        MoneyEntry entry2 = new MoneyEntry();
+        entry2.setAmount(new BigDecimal("200"));
+        entry2.setCurrency(Currency.EUR);
+
+        box.setMoneyEntries(new ArrayList<>(List.of(entry1, entry2)));
+        box.setFundraisingEvent(event);
+
+        when(collectionBoxRepository.findByUniqueIdentifier("ABC123")).thenReturn(Optional.of(box));
+        when(currencyConverter.convert(new BigDecimal("100"), Currency.USD, Currency.EUR)).thenReturn(new BigDecimal("91.00"));
+        when(currencyConverter.convert(new BigDecimal("200"), Currency.EUR, Currency.EUR)).thenReturn(new BigDecimal("200.00"));
+
+        BigDecimal result = collectionBoxService.transferMoneyToFundraisingEvent("ABC123");
+
+        // then
+        assertEquals(new BigDecimal("291.00"), result);
+        assertEquals(new BigDecimal("291.00"), event.getAccountBalance());
+        assertTrue(box.getMoneyEntries().isEmpty());
+    }
+
+    @Test
+    void testTransferFailsOnUnassignedBox() {
+        CollectionBox box = new CollectionBox();
+
+        when(collectionBoxRepository.findByUniqueIdentifier("ID")).thenReturn(Optional.of(box));
+
+        assertThrows(UnassignedBoxException.class,
+                () -> collectionBoxService.transferMoneyToFundraisingEvent("ID"));
+    }
+
+    @Test
+    void testTransferFormEmptyBox(){
+        CollectionBox box = new CollectionBox();
+        FundraisingEvent event = new FundraisingEvent();
+        event.setAccountCurrency(Currency.EUR);
+        event.setAccountBalance(BigDecimal.ZERO);
+
+        box.setFundraisingEvent(event);
+
+        when(collectionBoxRepository.findByUniqueIdentifier("ID")).thenReturn(Optional.of(box));
+
+        assertThrows(EmptyCollectionBoxException.class,
+                () -> collectionBoxService.transferMoneyToFundraisingEvent("ID"));
+    }
+
+
 
 
 
