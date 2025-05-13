@@ -114,7 +114,7 @@ public class CollectionBoxControllerIntegrationTest {
     }
 
     @Test
-    void shouldTransferMoneyToFundraisingEvent() throws Exception {
+    void shouldTransferMoneyToFundraisingEventAndGenerateReport() throws Exception {
         CollectionBox collectionBox = new CollectionBox();
         collectionBoxRepository.save(collectionBox);
 
@@ -142,8 +142,14 @@ public class CollectionBoxControllerIntegrationTest {
         mockMvc.perform(post("/sii/api/collection-boxes/transfer")
                 .param("uniqueIdentifier", collectionBox.getUniqueIdentifier()))
                 .andExpect(status().isOk())
-                //we dont need the value because we have test to check if converter is working well too
+                //we don't need the value because we have test to check if converter is working well too
                 .andExpect(content().string(containsString(("Successfully transferred: "))));
+
+        mockMvc.perform(post("/sii/api/events/financial-report"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].fundraisingEventName").value("Event"))
+                .andExpect(jsonPath("$[0].currency").value("USD"));
+
 
     }
 

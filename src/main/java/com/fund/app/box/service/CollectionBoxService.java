@@ -94,6 +94,11 @@ public class CollectionBoxService {
         CollectionBox collectionBox = collectionBoxRepository.findByUniqueIdentifier(uniqueIdentifier)
                 .orElseThrow(() -> new NonExistingCollectionBoxException("Invalid collection box identifier: " + uniqueIdentifier));
 
+        //there is a questions should we be only available to add money to the box that is assigned to some event or not?
+        //In the task description there is no information about this, so I believe it should be legal,
+        //but if I am wrong then we should uncomment line below:
+        //if (!collectionBox.isAssigned()) throw new UnassignedBoxException("Cannot add money to unassigned collection box");
+
         MoneyEntry entry = new MoneyEntry();
         entry.setCollectionBox(collectionBox);
         entry.setAmount(amount);
