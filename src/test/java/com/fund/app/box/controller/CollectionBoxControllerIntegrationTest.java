@@ -1,6 +1,7 @@
 package com.fund.app.box.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fund.app.box.dto.AddMoneyRequest;
 import com.fund.app.box.dto.AssignBoxRequest;
 import com.fund.app.box.model.CollectionBox;
 import com.fund.app.box.model.Currency;
@@ -14,6 +15,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.math.BigDecimal;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -81,6 +84,30 @@ public class CollectionBoxControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("assigned to event")));
 
+    }
+
+    @Test
+    void shouldAddMoneyToExistingBox() throws Exception {
+        CollectionBox collectionBox = new CollectionBox();
+        collectionBoxRepository.save(collectionBox);
+
+        AddMoneyRequest request = new AddMoneyRequest(collectionBox.getUniqueIdentifier(), new BigDecimal(10), Currency.USD);
+
+        mockMvc.perform(post("/sii/api/collection-boxes/fund")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    void shouldReturn404WhenAddingMoneyToNonExistingBox() throws Exception {
+        AddMoneyRequest request = new AddMoneyRequest("invalidID", new BigDecimal(10), Currency.USD);
+
+        mockMvc.perform(post("/sii/api/collection-boxes/fund")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isNotFound());
     }
 
 

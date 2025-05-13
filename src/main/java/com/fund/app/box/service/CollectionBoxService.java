@@ -3,13 +3,18 @@ package com.fund.app.box.service;
 import com.fund.app.box.exception.NonExistingCollectionBoxException;
 import com.fund.app.box.exception.NonExistingEventNameException;
 import com.fund.app.box.model.CollectionBox;
+import com.fund.app.box.model.Currency;
 import com.fund.app.box.model.FundraisingEvent;
+import com.fund.app.box.model.MoneyEntry;
 import com.fund.app.box.repository.CollectionBoxRepository;
 import com.fund.app.box.repository.FundraisingEventRepository;
+import com.fund.app.box.repository.MoneyEntryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -19,6 +24,8 @@ public class CollectionBoxService {
     private CollectionBoxRepository collectionBoxRepository;
     @Autowired
     private FundraisingEventRepository fundraisingEventRepository;
+    @Autowired
+    private MoneyEntryRepository moneyEntryRepository;
 
     @Transactional
     public CollectionBox createCollectionBox(String fundraisingEventName) {
@@ -76,5 +83,22 @@ public class CollectionBoxService {
 
         box.setFundraisingEvent(event);
     }
+
+    @Transactional
+    public void addMoneyToBox(String uniqueIdentifier, BigDecimal amount, Currency currency){
+        CollectionBox collectionBox = collectionBoxRepository.findByUniqueIdentifier(uniqueIdentifier)
+                .orElseThrow(() -> new NonExistingCollectionBoxException("Invalid collection box identifier: " + uniqueIdentifier));
+
+        MoneyEntry entry = new MoneyEntry();
+        entry.setCollectionBox(collectionBox);
+        entry.setAmount(amount);
+        entry.setCurrency(currency);
+        entry.setCreateTime(LocalDateTime.now());
+
+        //saving this transfer to the repository
+        collectionBox.getMoneyEntries().add(entry);
+        moneyEntryRepository.save(entry);
+    }
+
 
 }

@@ -1,9 +1,7 @@
 package com.fund.app.box.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -15,7 +13,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class MoneyEntry {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,6 +26,11 @@ public class MoneyEntry {
     @ManyToOne(fetch = FetchType.LAZY)
     private CollectionBox collectionBox;
 
+    //to track transactions time
     private LocalDateTime createTime;
 
+//    @PrePersist
+//    protected void onCreate() {
+//        this.createTime = LocalDateTime.now();
+//    }
 }

@@ -1,6 +1,7 @@
 package com.fund.app.box.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fund.app.box.dto.AddMoneyRequest;
 import com.fund.app.box.dto.AssignBoxRequest;
 import com.fund.app.box.dto.CreateCollectionBoxRequest;
 import com.fund.app.box.exception.NonExistingCollectionBoxException;
@@ -15,6 +16,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.math.BigDecimal;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -132,6 +135,54 @@ public class CollectionBoxControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void shouldAddMoneyAndReturnOk() throws Exception {
+        String uniqueIdentifier = "id-id";
+
+        AddMoneyRequest request = new AddMoneyRequest(uniqueIdentifier, new BigDecimal(10), Currency.EUR);
+
+        mockMvc.perform(post("/sii/api/collection-boxes/fund")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldAddMoneyAndReturnBadRequest_NonExistingBox() throws Exception {
+        String invalidIdentifier = "id-id";
+
+        AddMoneyRequest request = new AddMoneyRequest(invalidIdentifier, new BigDecimal(10), Currency.EUR);
+
+        doThrow(new NonExistingCollectionBoxException("Invalid collection box identifier: " + invalidIdentifier))
+                .when(collectionBoxService).addMoneyToBox(request.getUniqueIdentifier(), request.getAmount(), request.getCurrency());
+
+        mockMvc.perform(post("/sii/api/collection-boxes/fund")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void addMoneyToBox_NegativeAmount_ReturnsBadRequest() throws Exception {
+        // Given
+        AddMoneyRequest request =
+                new AddMoneyRequest("test-box-id", new BigDecimal("-10.00"), Currency.EUR);
+
+        // When & Then
+        mockMvc.perform(post("/sii/api/collection-boxes/fund")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+
+        verify(collectionBoxService, never()).addMoneyToBox(any(), any(), any());
+    }
+
+    //todo:: the rest of controller tests like no Id or no amount, but it's working because I tested it manually
+
+
+
+
 
 
 

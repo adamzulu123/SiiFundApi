@@ -1,5 +1,6 @@
 package com.fund.app.box.controller;
 
+import com.fund.app.box.dto.AddMoneyRequest;
 import com.fund.app.box.dto.AssignBoxRequest;
 import com.fund.app.box.dto.CollectionBoxDto;
 import com.fund.app.box.dto.CreateCollectionBoxRequest;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,6 +66,12 @@ public class CollectionBoxController {
         collectionBoxService.assignBoxToEvent(request.getUniqueIdentifier(), request.getEventName());
         return ResponseEntity.ok("CollectionBox assigned to event " + request.getEventName());
 
+    }
+
+    @PostMapping("/fund")
+    public ResponseEntity<String> putMoneyToCollectionBox(@Valid @RequestBody AddMoneyRequest request) {
+        collectionBoxService.addMoneyToBox(request.getUniqueIdentifier(), request.getAmount(), request.getCurrency());
+        return ResponseEntity.ok("Transaction completed successfully ");
     }
 
 
