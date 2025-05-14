@@ -75,6 +75,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ex.getMessage()); // 400 Bad Request
     }
 
+    @ExceptionHandler(CurrencyNotFoundException.class)
+    public ResponseEntity<String> handleCurrencyNotFound(CurrencyNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(ApiCurrencyRatesUnavailableException.class)
+    public ResponseEntity<String> handleApiCurrencyRatesUnavailable(ApiCurrencyRatesUnavailableException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ex.getMessage());
+    }
 
 
 }
