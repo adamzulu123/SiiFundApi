@@ -6,6 +6,7 @@ import com.fund.app.box.dto.AssignBoxRequest;
 import com.fund.app.box.model.CollectionBox;
 import com.fund.app.box.model.Currency;
 import com.fund.app.box.model.FundraisingEvent;
+import com.fund.app.box.model.MoneyEntry;
 import com.fund.app.box.repository.CollectionBoxRepository;
 import com.fund.app.box.repository.FundraisingEventRepository;
 import jakarta.transaction.Transactional;
@@ -19,6 +20,7 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -151,13 +153,99 @@ public class CollectionBoxControllerIntegrationTest {
                 //we don't need the value because we have test to check if converter is working well too
                 .andExpect(content().string(containsString(("Successfully transferred: "))));
 
-        mockMvc.perform(post("/sii/api/events/financial-report"))
+        mockMvc.perform(get("/sii/api/events/financial-report"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].fundraisingEventName").value("Event"))
                 .andExpect(jsonPath("$[0].currency").value("USD"));
 
 
     }
+
+    @Test
+    void shouldReturn400WhenAssigningFullCollectionBox() throws Exception {
+        CollectionBox collectionBox = new CollectionBox();
+        collectionBoxRepository.save(collectionBox);
+        MoneyEntry entry = new MoneyEntry();
+        entry.setCurrency(Currency.EUR);
+        entry.setCreateTime(LocalDateTime.now());
+        entry.setAmount(new BigDecimal("10"));
+        entry.setCollectionBox(collectionBox);
+
+        collectionBox.getMoneyEntries().add(entry);
+        collectionBoxRepository.save(collectionBox);
+
+        FundraisingEvent event = new FundraisingEvent("Event", Currency.USD);
+        fundraisingEventRepository.save(event);
+
+        AssignBoxRequest request = new AssignBoxRequest(collectionBox.getUniqueIdentifier(), event.getEventName());
+
+        mockMvc.perform(post("/sii/api/collection-boxes/assign")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("Cannot assign a non-empty collection box to an event")));
+    }
+
+    @Test
+    void shouldUpdateEventAccountBalanceAfterTransfer() throws Exception {
+        FundraisingEvent event = new FundraisingEvent("Event", Currency.USD);
+        fundraisingEventRepository.save(event);
+
+        CollectionBox collectionBox = new CollectionBox();
+        collectionBoxRepository.save(collectionBox);
+
+        AssignBoxRequest assignRequest = new AssignBoxRequest(collectionBox.getUniqueIdentifier(), event.getEventName());
+        mockMvc.perform(post("/sii/api/collection-boxes/assign")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(assignRequest)))
+                .andExpect(status().isOk());
+
+        AddMoneyRequest addMoneyRequest = new AddMoneyRequest(collectionBox.getUniqueIdentifier(), new BigDecimal(50), Currency.USD);
+        mockMvc.perform(post("/sii/api/collection-boxes/fund")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(addMoneyRequest)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/sii/api/collection-boxes/transfer")
+                        .param("uniqueIdentifier", collectionBox.getUniqueIdentifier()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/sii/api/events/financial-report"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].fundraisingEventName").value("Event"))
+                .andExpect(jsonPath("$[0].amount").value(50))
+                .andExpect(jsonPath("$[0].currency").value("USD"));
+    }
+
+    @Test
+    void shouldReturnEmptyReportWhenNoEventsOrBoxes() throws Exception {
+        mockMvc.perform(get("/sii/api/events/financial-report"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+    }
+
+    @Test
+    void shouldRejectInvalidCurrency() throws Exception {
+        AddMoneyRequest request = new AddMoneyRequest("someId", new BigDecimal(10), null);
+
+        mockMvc.perform(post("/sii/api/collection-boxes/fund")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRejectNegativeAmount() throws Exception {
+        AddMoneyRequest request = new AddMoneyRequest("someId", new BigDecimal(-10), Currency.PLN);
+
+        mockMvc.perform(post("/sii/api/collection-boxes/fund")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+
+
 
 
 

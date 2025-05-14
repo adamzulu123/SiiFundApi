@@ -3,10 +3,11 @@ package com.fund.app.box.util;
 import com.fund.app.box.dto.ExchangeRateDto;
 import com.fund.app.box.dto.Rate;
 import com.fund.app.box.exception.ApiCurrencyRatesUnavailableException;
-import com.fund.app.box.exception.CurrencyNotFoundException;
+import com.fund.app.box.exception.CurrencyRateNotFoundException;
 import com.fund.app.box.model.Currency;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -34,17 +35,22 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class CurrencySyncService {
-    private final WebClient webClient = WebClient.builder()
-            .baseUrl("https://api.nbp.pl/api")
-            .build();
+//    private final WebClient webClient = WebClient.builder()
+//            .baseUrl("https://api.nbp.pl/api")
+//            .build();
+    private final WebClient webClient;
 
     private static final List<String> AVAILABLE_CURRENCIES = List.of("USD", "EUR", "GBP", "PLN");
 
     private Map<Currency, BigDecimal> rates = Map.of(); //we save rates in CurrencySyncService bean memory
 
+    public CurrencySyncService(@Qualifier("nbpWebClient") WebClient webClient) {
+        this.webClient = webClient;
+    }
+
     public BigDecimal getMid(Currency currency) {
-        BigDecimal rate = rates.get(currency);
-        if (rate == null) throw new CurrencyNotFoundException(currency);
+        BigDecimal rate = rates.get(currency); //IllegalArgumentException if currency dont exists
+        if (rate == null) throw new CurrencyRateNotFoundException(currency);
         return rate;
     }
 
@@ -62,7 +68,6 @@ public class CurrencySyncService {
             rates = fallbackRates();
         }
     }
-
 
     public Mono<Map<Currency, BigDecimal>> fetchSelectedCurrenciesRates(){
         return webClient.get()

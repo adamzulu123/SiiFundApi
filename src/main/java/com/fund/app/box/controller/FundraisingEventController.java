@@ -8,10 +8,7 @@ import com.fund.app.box.service.FundraisingEventService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -35,7 +32,7 @@ public class FundraisingEventController {
 
     }
 
-    @PostMapping("/financial-report")
+    @GetMapping("/financial-report")
     public ResponseEntity<List<FundraisingEventFinancialReportDto>> financialReport() {
         List<FundraisingEventFinancialReportDto> report = fundraisingEventService.generateFinancialReport();
         return ResponseEntity.ok(report);

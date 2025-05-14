@@ -29,7 +29,7 @@ public class CollectionBox {
     //right now we are deleting collection box with all its MoneyEntry information.
     //It might be easier to implement and sometimes more suitable, but it's also highly possible
     //that we need all transactions and boxes history available everytime for analysis
-    //todo:: this case is important to discuss an analyze and implement right solution
+    //todo:: this case might be important to discuss an analyze and implement right solution
     @OneToMany(mappedBy = "collectionBox", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MoneyEntry> moneyEntries = new ArrayList<>();
 

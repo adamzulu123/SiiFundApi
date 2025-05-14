@@ -44,4 +44,30 @@ public class CurrencyConverterTest {
         assertThrows(IllegalArgumentException.class,
                 () -> converter.convert(null, Currency.EUR, Currency.EUR));
     }
+
+    @Test
+    void testConvertWithNullCurrency() {
+        assertThrows(IllegalArgumentException.class, () ->
+                converter.convert(new BigDecimal("100"), null, Currency.USD));
+
+        assertThrows(IllegalArgumentException.class, () ->
+                converter.convert(new BigDecimal("100"), Currency.EUR, null));
+    }
+
+    @Test
+    void testConvertWithDifferentRoundingScenarios() {
+        BigDecimal result1 = converter.convert(new BigDecimal("100.123"), Currency.EUR, Currency.PLN);
+        BigDecimal result2 = converter.convert(new BigDecimal("100.126"), Currency.EUR, Currency.PLN);
+
+        assertEquals(new BigDecimal("425.52"), result1); // 100.123 * 4.25 = 425.52275 →  425.52
+        assertEquals(new BigDecimal("425.54"), result2); // 100.126 * 4.25 = 425.5355 → 425.54
+    }
+
+    @Test
+    void testConvertWithVerySmallAmounts() {
+        BigDecimal result = converter.convert(new BigDecimal("0.01"), Currency.USD, Currency.EUR);
+        assertEquals(new BigDecimal("0.01"), result);
+    }
+
+
 }

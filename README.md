@@ -175,13 +175,13 @@ curl -X POST http://localhost:8080/sii/api/events/create \
 ```
 
 #### 2. Generate Financial Report:
-**Method:** `POST`  
+**Method:** `GET`  
 **Endpoint:** `/events/create`  
 **Description:** Returns a summary report of all fundraising events and their account balances.
 
 **ResponseBody**: `List<FundraisingEventFinancialReportDto>`
 ```bash
-curl -X POST http://localhost:8080/sii/api/events/financial-report
+curl -X GET http://localhost:8080/sii/api/events/financial-report
 ```
 **Example response**:
 ```json
