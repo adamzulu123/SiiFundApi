@@ -117,7 +117,7 @@ docker build --target test -t siifundapi-test .
 docker run -it --rm siifundapi-test sh
 ```
 ```bash
-mvn run
+mvn test
 ```
 ```bash
 exit
